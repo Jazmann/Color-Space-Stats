@@ -1,0 +1,11 @@
+*~
+.DS_Store
+*.o
+*.mex*
+*.autosave
+*.asv
+*.bak
+
+# MS Visual Studio
+*.obj
+*.pdb
