@@ -6,16 +6,16 @@ classdef Bin
         name = 'Bins'; % A discriptive name of the bin.
         axisNames;
         dims;
-        nBins;
-        bin;
-        vals;
-        bins;  % the counts for each bin.
+        nBins; % the number of bins 
+        bin; % the counts for each bin.
+        vals; % The center value of each bin
+        bins; % A lookup table for the bin allocation
         fBin; % bins normalised to 1:0 .
         f; % interpolated data at non zero points.
         g;
         gMean = [0,0];
         gSigma = [0,0];
-        gTheta = 0;;
+        gTheta = 0;
         gAmp = 1.0;
         aMin; aMax; aScale;
         count = 0;
@@ -74,8 +74,43 @@ classdef Bin
         end
         
         function obj = addValue(obj,pixel)
-            obj.bin(obj.bins{1}(pixel(1)),obj.bins{2}(pixel(2)),obj.bins{3}(pixel(3))) = obj.bin(obj.bins{1}(pixel(1)),obj.bins{2}(pixel(2)),obj.bins{3}(pixel(3))) + 1;
+            obj.bin(obj.bins{1}(pixel(1)+1),obj.bins{2}(pixel(2)+1),obj.bins{3}(pixel(3)+1)) = obj.bin(obj.bins{1}(pixel(1)+1),obj.bins{2}(pixel(2)+1),obj.bins{3}(pixel(3)+1)) + 1;
             obj.count = obj.count + 1;
+        end
+        
+        function obj = addImage(obj,img, trans)
+            disp(nargin);
+            [rows, cols, channels] = size(img);
+            if(nargin>=3)
+                disp('round(trans.toRotImg(img))');
+                imgBin = round(trans.toRotImg(img));
+            else
+                disp('img');
+                imgBin = img;
+            end
+            if channels==obj.dims
+                for i = 1:rows
+                    for j = 1:cols
+                        pixel=squeeze(imgBin(i,j,:));
+                        obj=obj.addValue(pixel);
+                    end
+                end
+            end
+        end
+        
+        function obj = addDirectory(obj,dirName, trans)
+            disp(nargin);
+            D = dir(strcat(dirName,'*.jpg'));
+            for k = 1:numel(D)
+                img = imread(strcat(dirName,D(k).name));  
+                if(nargin>=3)
+                    disp(strcat('Adding ',D(k).name,' with ',trans.scaleType));
+                    obj = obj.addImage(img, trans);
+                else
+                    disp(strcat('Adding ',D(k).name,' with no transform'));
+                    obj = obj.addImage(img);
+                end
+            end
         end
         
         function obj = norm(obj)
@@ -162,6 +197,9 @@ classdef Bin
             grid = cell(obj.dims,1);
             if obj.dims == 3
                 [grid{1}, grid{2}, grid{3}] = meshgrid(obj.vals{1}, obj.vals{2}, obj.vals{3});
+                grid{1} = permute(grid{1},[2,1,3]);
+                grid{2} = permute(grid{2},[2,1,3]);
+                grid{3} = permute(grid{3},[2,1,3]);
             elseif obj.dims == 2
                 [grid{1}, grid{2}] = meshgrid(obj.vals{1}, obj.vals{2});
                 grid{1} = grid{1}';
@@ -219,6 +257,28 @@ classdef Bin
             end
         end
         
+        function binOut=rot(obj, trans)
+            axisRanges=round(horzcat(trans.range(:,1).*obj.nBins',trans.range(:,2).*obj.nBins'));
+            axisLengths=round(trans.axisLength.*obj.nBins');
+            binOut=Bin(axisLengths', axisRanges(:,1)', axisRanges(:,2)');
+            for r=1:obj.nBins(1)
+                disp(round(100 .* r ./ obj.nBins(1) ))
+                for g=1:obj.nBins(2)
+                    for b=1:obj.nBins(3)
+                        indx=[r,g,b];
+                        val = zeros(1,obj.dims);
+                        for i=1:obj.dims
+                            val(i)=obj.vals{i}(indx(i));
+                        end
+                        valR = round(trans.toRot(val));
+                        binOut.bin(binOut.bins{1}(valR(1)+1),binOut.bins{2}(valR(2)+1),binOut.bins{3}(valR(3)+1)) = obj.bin(r,g,b);
+                    end
+                end
+            end
+            binOut.name = obj.name;
+            binOut.count = obj.count;
+        end
+        
         function obj = add(obj, addBin)
             obj.bin = obj.bin + addBin.bin;
             obj.count = obj.count + addBin.count;
@@ -260,6 +320,14 @@ classdef Bin
             color = colorSpace(0.0, [obj.a(1), obj.a(2), obj.a(3)], [1,1,1], [3,3,3], 0, 255, 0, 255, 10, 0);
             end
         end
+        
+        function out = binVal(obj, indx)
+            out = zeros(1,obj.dims);
+            for i=1:obj.dims
+                out(i)=obj.vals{i}(indx(i));
+            end
+        end
+
         
         function obj = show(obj)
             if obj.dims ==3

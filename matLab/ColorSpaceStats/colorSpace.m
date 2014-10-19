@@ -44,8 +44,8 @@ classdef colorSpace
             end
             
             if nargin>=1
-                obj.nT = transform(theta,'yes');
-                obj.T  = transform(theta,'no');
+                obj.nT = transform(theta, 'qR',  'YAB', 1);
+                obj.T  = transform(theta, 'qR', 'nYAB', 1);
             end
             if all(c < 1.0) && all(c > 0.0)
                 if CInSrc
