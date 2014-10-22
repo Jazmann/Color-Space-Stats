@@ -125,30 +125,47 @@ classdef Bin
         end
         
         function obj = removeZeros(obj,rad)
-            obj.loc = find(obj.fBin);
-            obj = obj.resetSubs;
-            mask = ones(size(obj.fBin));
-            if obj.dims == 2
-                for i = 1:length(obj.subs(:,1))
-                    mask(max(obj.subs(i,1)-rad,1):min(obj.subs(i,1)+rad,obj.nBins(1)),max(obj.subs(i,2)-rad,1):min(obj.subs(i,2)+rad,obj.nBins(2))) = 0;
+            if isempty(obj.loc) % allow user to set loc manually prior to call.
+                obj.loc = find(obj.fBin);
+                obj = obj.resetSubs;
+                mask = ones(size(obj.fBin));
+                if obj.dims == 2
+                    for i = 1:length(obj.subs(:,1))
+                        mask(max(obj.subs(i,1)-rad,1):min(obj.subs(i,1)+rad,obj.nBins(1)),max(obj.subs(i,2)-rad,1):min(obj.subs(i,2)+rad,obj.nBins(2))) = 0;
+                    end
+                elseif obj.dims == 3
+                    for i = 1:length(obj.subs(:,1))
+                        mask(max(obj.subs(i,1)-rad,1):min(obj.subs(i,1)+rad,obj.nBins(1)),max(obj.subs(i,2)-rad,1):min(obj.subs(i,2)+rad,obj.nBins(2)),max(obj.subs(i,3)-rad,1):min(obj.subs(i,3)+rad,obj.nBins(3))) = 0;
+                    end
                 end
-            elseif obj.dims == 3
-                for i = 1:length(obj.subs(:,1))
-                    mask(max(obj.subs(i,1)-rad,1):min(obj.subs(i,1)+rad,obj.nBins(1)),max(obj.subs(i,2)-rad,1):min(obj.subs(i,2)+rad,obj.nBins(2)),max(obj.subs(i,3)-rad,1):min(obj.subs(i,3)+rad,obj.nBins(3))) = 0;
-                end
+                keep = find(mask);
+                obj.loc = vertcat(obj.loc,keep);
+                obj = obj.resetSubs;
             end
-            keep = find(mask);
-            obj.loc = vertcat(obj.loc,keep);
-            obj = obj.resetSubs;
+            if size(obj.subs,1) ~= size(obj.loc,1)
+                obj = obj.resetSubs; % if the subscripts have not been set for loc set them.
+            end
+            negMat=ones(size(obj.bin));
+            negMat(obj.loc)=0;
+            negLoc=find(negMat); % these are the fBin values which need to be replaced.
+            
             obj = obj.fit;
             grid = obj.grid;
-            obj.fBin = obj.f(grid{2},grid{1});
-            minCount = 1.0/max(max(obj.bin));
-            loc = find(obj.fBin < minCount);
-            obj.fBin(loc) = 0;
+            if obj.dims == 2
+                obj.fBin = obj.f(grid{2},grid{1});
+                minCount = 1.0/max(max(obj.bin));
+            elseif obj.dims == 3
+                obj.fBin(negLoc) = obj.f(grid{1}(negLoc),grid{2}(negLoc),grid{3}(negLoc));
+                minCount = 1.0/max(max(max(obj.bin)));
+            end
+            locZero = obj.fBin < minCount;
+            obj.fBin(locZero) = 0; % remove interpolated values below a count of 1.
         end
         
         function obj = resetSubs(obj)
+            if isempty(obj.fBin)
+                obj = obj.norm;
+            end
             obj.subs = zeros(length(obj.loc),obj.dims);
             if obj.dims ==2
                 [obj.subs(:,1), obj.subs(:,2)] = ind2sub(size(obj.fBin),obj.loc);
@@ -174,7 +191,8 @@ classdef Bin
             if obj.dims ==2
                 obj.f = TriScatteredInterp(obj.vals{2}(obj.subs(:,2))', obj.vals{1}(obj.subs(:,1))', obj.fBin(obj.loc));
             elseif obj.dims ==3
-                obj.f = TriScatteredInterp(obj.vals{2}(obj.subs(:,2))', obj.vals{1}(obj.subs(:,1))', obj.vals{3}(obj.subs(:,3))', obj.fBin(obj.loc));
+                pts=[obj.vals{1}(obj.subs(:,1))', obj.vals{2}(obj.subs(:,2))', obj.vals{3}(obj.subs(:,3))'];
+                obj.f = scatteredInterpolant(pts,obj.fBin(obj.loc));
             end
         end
         
