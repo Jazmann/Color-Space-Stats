@@ -25,7 +25,8 @@ for i=1:3
     for j=3:11
         disp(strcat('Processing :  ',individualName{i},'__', digitName{j}));
         disp(dir(strcat(dirName{i,j},'*.jpg')));
-        createBinsFromDir(dirName{i,j}, individualName{i}, digitName{j},Yab)
+        createBinsFromDir(dirName{i,j}, individualName{i}, digitName{j}, Yab, Yab_Find_Speckle.loc,'round');
+        createBinsFromDir(dirName{i,j}, individualName{i}, digitName{j}, Yab, Yab_Find_Speckle.loc,'floor');
     end
 end
 

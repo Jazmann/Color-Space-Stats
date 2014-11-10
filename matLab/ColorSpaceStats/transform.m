@@ -51,7 +51,7 @@ classdef transform
             if nargin<=1
                 tType='qR';
             end
-   
+            
             if nargin<=2
                 sType='nYAB';
             end
@@ -263,9 +263,9 @@ classdef transform
         
         function outImage = fromRot(obj, pixelList)
             %# Shift each color plane (stored in each column of the N-by-3 matrix):
-            outImage(:,1) = (pixelList(:,1) - obj.shift(1));
-            outImage(:,2) = (pixelList(:,2) - obj.shift(2));
-            outImage(:,3) = (pixelList(:,3) - obj.shift(3));
+            outImage(:,1) = (pixelList(:,1) - obj.shift(1).*obj.discreteRange)./obj.scale(1);
+            outImage(:,2) = (pixelList(:,2) - obj.shift(2).*obj.discreteRange)./obj.scale(2);
+            outImage(:,3) = (pixelList(:,3) - obj.shift(3).*obj.discreteRange)./obj.scale(3);
             outImage = outImage * obj.iT';
         end % function
         
@@ -287,4 +287,28 @@ classdef transform
         
     end
     
+    methods (Static = true)
+        
+        function speck = speckle(trans, method)
+            if nargin <2
+                method='round';% method = 'round' 'ceil' 'floor'
+            end
+            srcRange = [trans.discreteRange,trans.discreteRange,trans.discreteRange;];
+            dstRange = round(horzcat(trans.range(:,1).*srcRange',trans.range(:,2).*srcRange'));
+            axisLengths=ceil(trans.axisLength.*srcRange');
+            
+            RGB_Find_Speckle=Bin(srcRange,[0,0,0],srcRange-1.0);
+            RGB_Find_Speckle.bin = ones(srcRange);
+            RGB_Find_Speckle.count=trans.discreteRange^3;
+            trans_Find_Speckle.name = strcat('Speckle ',method);
+            trans_Find_Speckle = RGB_Find_Speckle.rot(trans,[],method);
+            trans_Find_Speckle.loc=find(trans_Find_Speckle.bin);
+            if nargout ==2
+                speck=[trans_Find_Speckle.bin,trans_Find_Speckle.loc];
+            else
+                speck=trans_Find_Speckle;
+            end
+            
+        end
+    end
 end

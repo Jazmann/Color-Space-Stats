@@ -19,3 +19,9 @@ Yab_FSkin_Hands_Bin = Yab_FSkin_Hands_Bin.resetSubs;
 Yab_FSkin_Hands_Bin = Yab_FSkin_Hands_Bin.fit;
 grid = Yab_FSkin_Hands_Bin.grid;
 Yab_FSkin_Hands_Bin.fBin = Yab_FSkin_Hands_Bin.f(grid{2},grid{1});
+
+speckleLoc=find(Yab_Find_Speckle.bin==0);
+speckle = zeros(length(speckleLoc),3);
+[speckle(:,1), speckle(:,2), speckle(:,3)] = ind2sub(size(Yab_Find_Speckle.bin), speckleLoc);
+speckleBin=Bin(Yab_Find_Speckle.nBins,Yab_Find_Speckle.aMin,Yab_Find_Speckle.aMax);
+speckleBin.bin(speckleLoc)=1;

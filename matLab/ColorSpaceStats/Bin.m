@@ -125,6 +125,9 @@ classdef Bin
         end
         
         function obj = removeZeros(obj,rad)
+            if nargin<1
+                rad=1;
+            end
             if isempty(obj.loc) % allow user to set loc manually prior to call.
                 obj.loc = find(obj.fBin);
                 obj = obj.resetSubs;
@@ -174,12 +177,15 @@ classdef Bin
             end
         end
         
-        function obj = smooth(obj)
+        function obj = smooth(obj,rad)
             %--- Normalised Histogram data ---------------------
             % we remove zeros from the input bin data as some are due to the color
             % space rotation and they affect the sigma values.
+            if nargin <=1
+                rad=3;
+            end
             if obj.dims == 2
-                G = fspecial('gaussian',[3,3],1);
+                G = fspecial('gaussian',[rad,rad],1);
                 obj.fBin = imfilter(obj.fBin,G,'same');
             end
         end
@@ -255,29 +261,31 @@ classdef Bin
             binOut.axisNames = [obj.axisNames(ind(1)),obj.axisNames(ind(2))];
             binOut.name = strcat(obj.name,'_',obj.axisNames(ind(1)),obj.axisNames(ind(2)));
             if nargin <=2
-                if d==1
                     binOut.bin = squeeze(sum(obj.bin,d));
-                elseif d==2
-                    binOut.bin = squeeze(sum(obj.bin,d));
-                elseif d==3
-                    binOut.bin = squeeze(sum(obj.bin,d));
-                end
+                    binOut.fBin = squeeze(sum(obj.fBin,d));
                 binOut.count = obj.count;
             else
                 if d==1
-                    binOut.bin = squeeze(sum(obj.bin(range(1):range(2),:,:),d));
+                    binOut.bin  = squeeze(sum(obj.bin( range(1):range(2),:,:),d));
+                    binOut.fBin = squeeze(sum(obj.fBin(range(1):range(2),:,:),d));
                 elseif d==2
-                    binOut.bin = squeeze(sum(obj.bin(:,range(1):range(2),:),d));
+                    binOut.bin  = squeeze(sum(obj.bin( :,range(1):range(2),:),d));
+                    binOut.fBin = squeeze(sum(obj.fBin(:,range(1):range(2),:),d));
                 elseif d==3
-                    binOut.bin = squeeze(sum(obj.bin(:,:,range(1):range(2)),d));
+                    binOut.bin  = squeeze(sum(obj.bin( :,:,range(1):range(2)),d));
+                    binOut.fBin = squeeze(sum(obj.fBin(:,:,range(1):range(2)),d));
                 end
+                binOut.fBin = binOut.fBin./max(max(binOut.fBin));
                 binOut.count = sum(sum(binOut.bin));
             end
         end
         
-        function binOut=rot(obj, trans)
+        function binOut=rot(obj, trans, transLoc, method)
+            if nargin <4
+                method='round';% method = 'round' 'ceil' 'floor' 
+            end
             axisRanges=round(horzcat(trans.range(:,1).*obj.nBins',trans.range(:,2).*obj.nBins'));
-            axisLengths=round(trans.axisLength.*obj.nBins');
+            axisLengths=ceil(trans.axisLength.*obj.nBins');
             binOut=Bin(axisLengths', axisRanges(:,1)', axisRanges(:,2)');
             for r=1:obj.nBins(1)
                 disp(round(100 .* r ./ obj.nBins(1) ))
@@ -288,13 +296,34 @@ classdef Bin
                         for i=1:obj.dims
                             val(i)=obj.vals{i}(indx(i));
                         end
-                        valR = round(trans.toRot(val));
-                        binOut.bin(binOut.bins{1}(valR(1)+1),binOut.bins{2}(valR(2)+1),binOut.bins{3}(valR(3)+1)) = obj.bin(r,g,b);
+                        switch method
+                            case 'round'
+                                valR = round(trans.toRot(val));
+                            case 'ceil'
+                                valR = ceil(trans.toRot(val));
+                            case 'floor'
+                                valR = floor(trans.toRot(val));
+                            otherwise
+                                valR = round(trans.toRot(val));
+                        end
+                        l = binOut.bins{1}(valR(1)+1);
+                        x = binOut.bins{2}(valR(2)+1);
+                        y = binOut.bins{3}(valR(3)+1);
+                        binOut.bin(l,x,y) = binOut.bin(l,x,y) + obj.bin(r,g,b);
                     end
                 end
             end
-            binOut.name = obj.name;
+            binOut.name  = obj.name;
             binOut.count = obj.count;
+            if nargin<3
+                RGB_Find_Speckle = Bin(obj.nBins, obj.aMin, obj.aMax);
+                RGB_Find_Speckle.bin = ones(obj.nBins);
+                RGB_Find_Speckle.count = prod(obj.nBins);
+                Yab_Find_Speckle = RGB_Find_Speckle.rot(trans,[]);
+                binOut.loc = find(Yab_Find_Speckle.bin);
+            else
+                binOut.loc = transLoc;
+            end
         end
         
         function obj = add(obj, addBin)
