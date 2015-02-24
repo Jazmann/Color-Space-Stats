@@ -286,7 +286,7 @@ classdef Bin
             end
             axisRanges=round(horzcat(trans.range(:,1).*obj.nBins',trans.range(:,2).*obj.nBins'));
             axisLengths=ceil(trans.axisLength.*obj.nBins');
-            binOut=Bin(axisLengths', axisRanges(:,1)', axisRanges(:,2)');
+            binOut=Bin(ceil(axisLengths'), axisRanges(:,1)', axisRanges(:,2)');
             for r=1:obj.nBins(1)
                 disp(round(100 .* r ./ obj.nBins(1) ))
                 for g=1:obj.nBins(2)
