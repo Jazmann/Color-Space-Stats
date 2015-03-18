@@ -1,6 +1,6 @@
 
 theta = 0;
-Yab=transform(theta, 'qR', 'YAB', 1);
+Yab=transform(theta, 'qR', 'LCaCb', 1);
 axisRanges=round(Yab.range*Yab.discreteRange);
 axisLengths=round(Yab.axisLength*Yab.discreteRange);
 RGB_Find_Speckle=Bin([256,256,256],[0,0,0],[255,255,255]);

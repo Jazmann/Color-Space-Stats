@@ -225,22 +225,22 @@ classdef transform
             
             switch theta_segment
                 case 1
-                    obj.scale_fRs_fR = [ 1; 1; 1];
+                    obj.scale_fRs_fR = [ 1, 1, 1];
                     
                 case 2
-                    obj.scale_fRs_fR = [ 1;-1; 1];
+                    obj.scale_fRs_fR = [ 1,-1, 1];
                     
                 case 3
-                    obj.scale_fRs_fR = [ 1;-1;-1];
+                    obj.scale_fRs_fR = [ 1,-1,-1];
                     
                 case 4
-                    obj.scale_fRs_fR = [ 1; 1;-1];
+                    obj.scale_fRs_fR = [ 1, 1,-1];
                     
                 case 5
-                    obj.scale_fRs_fR = [ 1; 1; 1];
+                    obj.scale_fRs_fR = [ 1, 1, 1];
                     
                 case 6
-                    obj.scale_fRs_fR = [ 1;-1; 1];
+                    obj.scale_fRs_fR = [ 1,-1, 1];
                 otherwise
                     obj.qR = null;
             end
@@ -368,7 +368,9 @@ classdef transform
         
         function obj=setScale(obj, tType, shiftQIn)
             obj.scaleType = tType; % 'nLCaCb' 'LCaCb'
+            % pxlShift is a shift to ensure a 1-1 transform after rounding
             pxlShift=[sqrt(3)./2.0 - 1.0; -0.5;-0.5]./(obj.discreteRange);
+            %pxlShift=[0.;0.;0.]%[sqrt(3)./2.0 - 1.0; -0.5;-0.5]./(obj.discreteRange);
             if nargin<3
                 shiftQ=1;
             else
@@ -421,18 +423,36 @@ classdef transform
                 case 'fR'
                     switch tType
                         case 'nLCaCb'
-                            obj.scale = obj.scale_nLCaCb_rR.* obj.scale_rR_fR;
+                            obj.scale = obj.scale_nLCaCb_fRs .* obj.scale_fRs_fR;
                         case 'LCaCb'
-                            obj.scale = obj.scale_LCaCb_rR .* obj.scale_rR_fR;
+                            obj.scale = obj.scale_LCaCb_nLCaCb .* obj.scale_nLCaCb_fRs .* obj.scale_fRs_fR;
+                        otherwise
+                            obj.scale = [1;1;1];
+                    end
+                case 'fRs'
+                    switch tType
+                        case 'nLCaCb'
+                            obj.scale = obj.scale_nLCaCb_fRs ;
+                        case 'LCaCb'
+                            obj.scale = obj.scale_LCaCb_nLCaCb .* obj.scale_nLCaCb_fRs ;
                         otherwise
                             obj.scale = [1;1;1];
                     end
                 case 'qR'
                     switch tType
                         case 'nLCaCb'
-                            obj.scale = obj.scale_nLCaCb_rR.* obj.scale_rR_qR;
+                            obj.scale = obj.scale_nLCaCb_qRs .* obj.scale_fRs_fR;
                         case 'LCaCb'
-                            obj.scale = obj.scale_LCaCb_rR .* obj.scale_rR_qR;
+                            obj.scale = obj.scale_LCaCb_nLCaCb .* obj.scale_nLCaCb_qRs .* obj.scale_fRs_fR;
+                        otherwise
+                            obj.scale = [1;1;1];
+                    end
+                case 'qRs'
+                    switch tType
+                        case 'nLCaCb'
+                            obj.scale = obj.scale_nLCaCb_qRs ;
+                        case 'LCaCb'
+                            obj.scale = obj.scale_LCaCb_nLCaCb .* obj.scale_nLCaCb_qRs;
                         otherwise
                             obj.scale = [1;1;1];
                     end
