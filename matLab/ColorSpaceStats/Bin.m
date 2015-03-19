@@ -100,10 +100,10 @@ classdef Bin
         
         function obj = addDirectory(obj,dirNameIn, trans)
             disp(nargin);
-            if dirName(end)=='/'
+            if dirNameIn(end)=='/'
                 dirName = dirNameIn;
             else
-                dirName = strcat(dirName,'/');
+                dirName = strcat(dirNameIn,'/');
             end
                 D = dir(strcat(dirName,'*.jpg'));
             for k = 1:numel(D)
