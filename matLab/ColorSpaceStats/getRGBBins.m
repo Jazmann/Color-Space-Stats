@@ -6,6 +6,7 @@ rgbBin = Bin([dataMax+1,dataMax+1,dataMax+1],[dataMin,dataMin,dataMin],[dataMax,
 rgbBin.name = name;
 rgbBin.axisNames = ['R','G','B'];
 rgbBin = rgbBin.addDirectory(dirName);
+rgbBin = rgbBin.norm();
 eval([name,' = rgbBin']);
 save(strcat(dirName,'/',name),name);
 end

@@ -541,6 +541,13 @@ classdef Bin
             figure(gcf);
         end
         
+        function binOut = skin(binIn, depth)
+            binOut = Bin(binIn.nBins, binIn.aMin, binIn.aMax);
+            binOut.name = strcat(binIn.name,'_Skinned');
+            binOut.bin(depth:end-depth,depth:end-depth,depth:end-depth) = binIn.bin(depth:end-depth,depth:end-depth,depth:end-depth);
+            binOut.count = sum(sum(sum(binOut.bin)));
+            binOut = binOut.norm;
+        end
         
         function binOut = negateBins(bin, maskBin)
             loc = find(maskBin.bin);
