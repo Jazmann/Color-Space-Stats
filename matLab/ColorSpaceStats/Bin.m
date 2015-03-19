@@ -280,7 +280,7 @@ classdef Bin
             end
         end
         
-        function binOut=rot(obj, trans, transLoc, method)
+        function binOut = rot(obj, trans, transLoc, method)
             if nargin <4
                 method='round';% method = 'round' 'ceil' 'floor' 
             end
@@ -497,6 +497,28 @@ classdef Bin
     end
     
     methods (Static = true)
+        
+        function saveFields(binIn,fileName)   
+        name = binIn.name; % A discriptive name of the bin.
+        axisNames = binIn.axisNames;
+        dims = binIn.dims;
+        nBins = binIn.nBins; % the number of bins 
+        bin = binIn.bin; % the counts for each bin.
+        vals = binIn.vals; % The center value of each bin
+        bins = binIn.bins; % A lookup table for the bin allocation
+        fBin = binIn.fBin; % bins normalised to 1:0 .
+        f = binIn.f; % interpolated data at non zero points.
+        g = binIn.g;
+        gMean = binIn.gMean;
+        gSigma = binIn.gSigma;
+        gTheta = binIn.gTheta;
+        gAmp = binIn.gAmp;
+        aMin = binIn.aMin; aMax = binIn.aMax; aScale = binIn.aScale;
+        count = binIn.count;
+        a = binIn.a;
+        subs = binIn.subs; loc = binIn.loc;
+        save(fileName,'name','axisNames','dims','nBins','bin','vals','bins','fBin','f','g','gMean','gSigma','gTheta','gAmp','aMin','aMax','aScale','count','a','subs','loc')
+        end
         
         function overlap(bin1,bin2, thresh)
             if nargin <=2
