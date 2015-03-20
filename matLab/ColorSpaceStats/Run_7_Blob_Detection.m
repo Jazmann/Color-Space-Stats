@@ -44,12 +44,10 @@ for id = 1:nBlobs
     masked{id}.bin=masked{id}.bin .* mask{id};
     masked{id}=masked{id}.norm();
     masked{id}.count = sum(sum(masked{id}.bin));
+    masked{id}.a = [stat(id).Centroid(2), stat(id).Centroid(1)];
+    masked{id}.gMean = [stat(id).Centroid(2), stat(id).Centroid(1)];   
+    masked{id}.gTheta = -1 * stat(id).Orientation * (pi/180);
+    masked{id}.gSigma = [stat(id).MajorAxisLength/4, stat(id).MinorAxisLength/4];   
+eval(strcat(name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id),' = masked{id}'));
+save(strcat(dirName,'/',name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id)),strcat(name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id)));
 end
-
-eval(strcat(name,'_Skinned_Rot_TopTail_CaCb_Despec,fBin = '));
-
-maskedBin = eval(strcat(name,'_Skinned_Rot_TopTail_CaCb_Despec'));
-
-eval(strcat(name,'_Skinned_Rot_TopTail_CaCb_Despec = ', name,'_Skinned_Rot_TopTail_CaCb.removeZeros(2)'));
-
-save(strcat(dirName,'/',name,'_Skinned_Rot_TopTail_CaCb_Despec'),strcat( name,'_Skinned_Rot_TopTail_CaCb_Despec'));
