@@ -549,6 +549,14 @@ classdef Bin
             binOut = binOut.norm;
         end
         
+        function binOut = topTail(binIn, depth)
+            binOut = Bin(binIn.nBins, binIn.aMin, binIn.aMax);
+            binOut.name = strcat(binIn.name,'_TopTail');
+            binOut.bin(depth:end-depth,1:end,1:end) = binIn.bin(depth:end-depth,1:end,1:end);
+            binOut.count = sum(sum(sum(binOut.bin)));
+            binOut = binOut.norm;
+        end
+        
         function binOut = negateBins(bin, maskBin)
             loc = find(maskBin.bin);
             binOut = bin;
