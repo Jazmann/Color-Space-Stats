@@ -210,9 +210,15 @@ classdef Bin
         function obj = gFit(obj)
             xdata = zeros(obj.nBins(1),obj.nBins(2),2);
             [ xdata(:,:,1), xdata(:,:,2)] =  meshgrid(obj.vals{2},obj.vals{1});
-            x0 = [1.0, obj.a(2),         obj.aScale(2)/4.0,                obj.a(1),        obj.aScale(1)/4.0,                0.0]; % Inital guess parameters
-            lb = [0.9, obj.vals{2}(1),   obj.aScale(2)*(3.0/obj.nBins(2)), obj.vals{1}(1),  obj.aScale(1)*(3.0/obj.nBins(1)),-pi/4];
-            ub = [1.0, obj.vals{2}(end), obj.aScale(2),                    obj.vals{1}(end),obj.aScale(1),                    pi/4];
+            if obj.gSigma(1) == 0 && obj.gSigma(2)==0
+            x0 = [1.0, obj.a(2),         obj.aScale(2)/4.0,                obj.a(1),        obj.aScale(1)/4.0,                obj.gTheta]; % Inital guess parameters
+            lb = [0.9, obj.vals{2}(1),   obj.aScale(2)*(3.0/obj.nBins(2)), obj.vals{1}(1),  obj.aScale(1)*(3.0/obj.nBins(1)), obj.gTheta - pi/4];
+            ub = [1.0, obj.vals{2}(end), obj.aScale(2),                    obj.vals{1}(end),obj.aScale(1),                    obj.gTheta + pi/4];
+            else
+            x0 = [1.0, obj.a(2),         1.0 .* obj.gSigma(2), obj.a(1),        1.0 .* obj.gSigma(1), obj.gTheta]; % Inital guess parameters
+            lb = [0.9, obj.vals{2}(1),   0.1 .* obj.gSigma(2), obj.vals{1}(1),  0.1 .* obj.gSigma(1), obj.gTheta - pi/4];
+            ub = [1.0, obj.vals{2}(end), 8.0 .* obj.gSigma(2), obj.vals{1}(end),8.0 .* obj.gSigma(1), obj.gTheta + pi/4];
+            end
             [x,resnorm,residual,exitflag] = lsqcurvefit(@D2GaussFunctionRot,x0,xdata,obj.fBin,lb,ub);
             obj.gAmp = x(1);
             obj.gMean(2) = x(2);
@@ -351,7 +357,6 @@ classdef Bin
             obj.count = sum(sum(sum(obj.bin)));
         end
         
-        
         function obj = fNegate(obj, maskBin, thresh)
             if nargin <=2
                 thresh = 0;
@@ -380,7 +385,6 @@ classdef Bin
             end
         end
 
-        
         function obj = show(obj)
             if obj.dims ==3
                 figure('Name',horzcat('3D ',obj.name,' bin'),'NumberTitle','off');
@@ -472,7 +476,6 @@ classdef Bin
             figure(gcf);
         end
         
-        
         function obj = showNormBin(obj)
             figure('Name','Normalized Bins','NumberTitle','off');
             subplot(1,3,1)
@@ -483,7 +486,6 @@ classdef Bin
             imagesc(squeeze(sum(obj.fBin,3)));
             figure(gcf);
         end
-        
         
         function gShow(obj, nContours)
             figure('Name',horzcat('Gaussian fit ',obj.name),'NumberTitle','off');
@@ -503,27 +505,79 @@ classdef Bin
     
     methods (Static = true)
         
-        function saveFields(binIn,fileName)   
-        name = binIn.name; % A discriptive name of the bin.
-        axisNames = binIn.axisNames;
-        dims = binIn.dims;
-        nBins = binIn.nBins; % the number of bins 
-        bin = binIn.bin; % the counts for each bin.
-        vals = binIn.vals; % The center value of each bin
-        bins = binIn.bins; % A lookup table for the bin allocation
-        fBin = binIn.fBin; % bins normalised to 1:0 .
-        f = binIn.f; % interpolated data at non zero points.
-        g = binIn.g;
-        gMean = binIn.gMean;
-        gSigma = binIn.gSigma;
-        gTheta = binIn.gTheta;
-        gAmp = binIn.gAmp;
-        aMin = binIn.aMin; aMax = binIn.aMax; aScale = binIn.aScale;
-        count = binIn.count;
-        a = binIn.a;
-        subs = binIn.subs; loc = binIn.loc;
-        save(fileName,'name','axisNames','dims','nBins','bin','vals','bins','fBin','f','g','gMean','gSigma','gTheta','gAmp','aMin','aMax','aScale','count','a','subs','loc')
+        function saveFields(binIn,fileName)
+            name = binIn.name; % A discriptive name of the bin.
+            axisNames = binIn.axisNames;
+            dims = binIn.dims;
+            nBins = binIn.nBins; % the number of bins
+            bin = binIn.bin; % the counts for each bin.
+            vals = cell2mat(binIn.vals); % The center value of each bin
+            bins = double(cell2mat(binIn.bins)); % A lookup table for the bin allocation
+            fBin = binIn.fBin; % bins normalised to 1:0 .
+            %f = binIn.f; % interpolated data at non zero points.
+            g = binIn.g;
+            gMean = binIn.gMean;
+            gSigma = binIn.gSigma;
+            gTheta = binIn.gTheta;
+            gAmp = binIn.gAmp;
+            aMin = binIn.aMin; aMax = binIn.aMax; aScale = binIn.aScale;
+            count = binIn.count;
+            a = binIn.a;
+            subs = binIn.subs; loc = binIn.loc;
+            save(fileName,'name','axisNames','dims','nBins','bin','vals','bins','fBin', ... %'f',
+            'g','gMean','gSigma','gTheta','gAmp','aMin','aMax','aScale','count','a','subs','loc','-v6');
         end
+        
+        function masked = blobSplit(binIn, nBlobs, tol)
+            if nargin<3
+                tol = 0.05; % fBin values lower than this will be ignored.
+            end
+            % Setup binary image
+            BW = binIn.fBin > tol;
+            % Find convex hulls
+            CH_objects = bwconvhull(BW,'objects');
+            % label convex hull areas.
+            Ilabel = bwlabel(CH_objects,8);
+            % Find eliptical fits to the convex hulls.i.e. the blobs.
+            stat = regionprops(Ilabel,'Area','Centroid','MajorAxisLength','MinorAxisLength','Orientation');
+            % Sort blobs by area
+            Afields = fieldnames(stat);
+            Acell = struct2cell(stat);
+            sz = size(Acell);
+            % Convert to a matrix
+            Acell = reshape(Acell, sz(1), []);      % Px(MxN)
+            % Make each field a column
+            Acell = Acell';                         % (MxN)xP
+            % Sort by first field "area"
+            Acell = sortrows(Acell, -1)
+            % Put back into original cell array format
+            Acell = reshape(Acell', sz);
+            % Convert to Struct
+            stat = cell2struct(Acell, Afields, 1);
+            % Find the Ilabel indx for the blobs in order of size.
+            IlabelIndx = zeros(length(stat));
+            for id = 1:length(stat)
+                IlabelIndx(id) = Ilabel(round(stat(id).Centroid(2)), round(stat(id).Centroid(1)));
+            end
+            if nargin<2
+                nBlobs = 2; % number of blobs into which the bins are divided.
+            end
+            % Divide bin by blobs.
+            for id = 1:nBlobs
+                mask{id}  = ( Ilabel == IlabelIndx(id) );
+                masked{id} = binIn;
+                masked{id}.fBin = binIn.fBin .* mask{id};
+                masked{id}.bin = masked{id}.bin .* mask{id};
+                masked{id} = masked{id}.norm();
+                masked{id}.count = sum(sum(masked{id}.bin));
+                masked{id}.a = [stat(id).Centroid(2), stat(id).Centroid(1)];
+                masked{id}.name = strcat(binIn.name,' blob ',num2str(id));
+                masked{id}.gMean = [stat(id).Centroid(2), stat(id).Centroid(1)];
+                masked{id}.gTheta = -1 * stat(id).Orientation * (pi/180);
+                masked{id}.gSigma = [stat(id).MajorAxisLength/4, stat(id).MinorAxisLength/4];
+            end
+        end
+
         
         function overlap(bin1,bin2, thresh)
             if nargin <=2
@@ -543,8 +597,19 @@ classdef Bin
         
         function binOut = skin(binIn, depth)
             binOut = Bin(binIn.nBins, binIn.aMin, binIn.aMax);
-            binOut.name = strcat(binIn.name,'_Skinned');
-            binOut.bin(depth:end-depth,depth:end-depth,depth:end-depth) = binIn.bin(depth:end-depth,depth:end-depth,depth:end-depth);
+            if size(depth) == [1,1]
+                binOut.name = strcat(binIn.name,'_Skinned');
+                binOut.bin(depth:end-depth,depth:end-depth,depth:end-depth) = binIn.bin(depth:end-depth,depth:end-depth,depth:end-depth);
+            elseif size(depth) == [1,2]
+                binOut.name = strcat(binIn.name,'_Skinned');
+                binOut.bin(depth(1):end-depth(2),depth(1):end-depth(2),depth(1):end-depth(2)) = binIn.bin(depth(1):end-depth(2),depth(1):end-depth(2),depth(1):end-depth(2));
+            elseif size(depth) == [3,2]
+                binOut.name = strcat(binIn.name,'_Skinned');
+                binOut.bin(depth(1,1):end-depth(1,2),depth(2,1):end-depth(2,2),depth(3,1):end-depth(3,2)) = binIn.bin(depth(1,1):end-depth(1,2),depth(2,1):end-depth(2,2),depth(3,1):end-depth(3,2));
+            elseif size(depth) == [3,1]
+                binOut.name = strcat(binIn.name,'_Skinned');
+                binOut.bin(depth(1,1):end-depth(1,1),depth(2,1):end-depth(2,1),depth(3,1):end-depth(3,1)) = binIn.bin(depth(1,1):end-depth(1,1),depth(2,1):end-depth(2,1),depth(3,1):end-depth(3,1));
+            end
             binOut.count = sum(sum(sum(binOut.bin)));
             binOut = binOut.norm;
         end
