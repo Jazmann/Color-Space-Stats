@@ -1,5 +1,5 @@
-dirName='/Users/jaspershemilt/Developer/projects/Color-Space-Stats/matLab/ColorSpaceStats/Skin/IndividualSkin/JSkin/Index/Pad/Small';
-name='RGB_JSkin_Index_Pad_Bin';
+
+function run_all( dirName, name)
 % add directory for the exported fields to be visualised with Mathematica.
 mkdir(strcat(dirName,'/mathematica'));
 % 1 : Find the bins.
@@ -17,7 +17,7 @@ save(strcat(dirName,'/',name,'_Skinned'),strcat( name,'_Skinned'));
 eval(strcat( 'Bin.saveFields(',name,'_Skinned',',''',dirName,'/mathematica/',name,'_Skinned',''')'));
 
 % 3 : Rotate the bins
-% use a theta=0, signed factored, normalised, shifted transform 
+% use a theta=0, signed factored, normalised, shifted transform
 fR=transform(0, 'fRs', 'nLCaCb', 1, 8);
 % Rotate the bins.
 eval(strcat(name,'_Skinned_Rot = ', name,'_Skinned.rot(fR)'));
@@ -26,7 +26,7 @@ save(strcat(dirName,'/',name,'_Skinned_Rot'),strcat( name,'_Skinned_Rot'));
 eval(strcat( 'Bin.saveFields(',name,'_Skinned_Rot',',''',dirName,'/mathematica/',name,'_Skinned_Rot',''')'));
 
 % 4 : Top and Tail the luminocity axis.
-topTailRng = 42; 
+topTailRng = 42;
 eval(strcat(name,'_Skinned_Rot_TopTail = Bin.skin(', name,'_Skinned_Rot, [topTailRng;0;0])'));
 eval(strcat(name,'_Skinned_Rot_TopTail.name = ''',name,'_Skinned_Rot_TopTail'''));
 % Save the result.
@@ -55,6 +55,6 @@ for id = 1:nBlobs
     masked{id} = masked{id}.gFit;
     eval(strcat(name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id),' = masked{id}'));
     save(strcat(dirName,'/',name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id)),strcat(name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id)));
-eval(strcat( 'Bin.saveFields(',name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id),',''',dirName,'/mathematica/',name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id),''')'));
+    eval(strcat( 'Bin.saveFields(',name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id),',''',dirName,'/mathematica/',name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id),''')'));
 end
 
