@@ -5,7 +5,7 @@ mkdir(strcat(dirName,'/mathematica'));
 % 1 : Find the bins.
 getRGBBins(dirName,name);
 load(strcat(dirName,'/',name));
-eval(strcat( name,'.saveFields(',dirName,'/mathematica/',name));
+eval(strcat( name,'.saveFields(',dirName,'/mathematica/',name,')'));
 
 % 2 : Skin the bins.
 % Set the depth to skin the bins by. this will set to zero all bins which
@@ -14,7 +14,7 @@ skinDepth=9;
 eval(strcat( name,'_Skinned = Bin.skin(',name,',skinDepth)'));
 % Save the result.
 save(strcat(dirName,'/',name,'_Skinned'),strcat( name,'_Skinned'));
-eval(strcat( name,'_Skinned.saveFields(',dirName,'/mathematica/',name,'_Skinned'));
+eval(strcat( name,'_Skinned.saveFields(',dirName,'/mathematica/',name,'_Skinned',')'));
 
 % 3 : Rotate the bins
 % use a theta=0, signed factored, normalised, shifted transform 
@@ -23,7 +23,7 @@ fR=transform(0, 'fRs', 'nLCaCb', 1, 8);
 eval(strcat(name,'_Skinned_Rot = ', name,'_Skinned.rot(fR)'));
 % Save the result.
 save(strcat(dirName,'/',name,'_Skinned_Rot'),strcat( name,'_Skinned_Rot'));
-eval(strcat( name,'_Skinned_Rot.saveFields(',dirName,'/mathematica/',name,'_Skinned_Rot'));
+eval(strcat( name,'_Skinned_Rot.saveFields(',dirName,'/mathematica/',name,'_Skinned_Rot',')'));
 
 % 4 : Top and Tail the luminocity axis.
 topTailRng = 42; 
@@ -31,20 +31,20 @@ eval(strcat(name,'_Skinned_Rot_TopTail = Bin.skin(', name,'_Skinned_Rot, [topTai
 eval(strcat(name,'_Skinned_Rot_TopTail.name = ',name,'_Skinned_Rot_TopTail'));
 % Save the result.
 save(strcat(dirName,'/',name,'_Skinned_Rot_TopTail'),strcat( name,'_Skinned_Rot_TopTail'));
-eval(strcat( name,'_Skinned_Rot_TopTail.saveFields(',dirName,'/mathematica/',name,'_Skinned_Rot_TopTail'));
+eval(strcat( name,'_Skinned_Rot_TopTail.saveFields(',dirName,'/mathematica/',name,'_Skinned_Rot_TopTail',')'));
 
 % 5 : Collapse the luminocity axis.
 eval(strcat(name,'_Skinned_Rot_TopTail_CaCb = ', name,'_Skinned_Rot_TopTail.collapse(1, [1,256])'));
 % Save the result.
 save(strcat(dirName,'/',name,'_Skinned_Rot_TopTail_CaCb'),strcat( name,'_Skinned_Rot_TopTail_CaCb'));
-eval(strcat( name,'_Skinned_Rot_TopTail_CaCb.saveFields(',dirName,'/mathematica/',name,'_Skinned_Rot_TopTail_CaCb'));
+eval(strcat( name,'_Skinned_Rot_TopTail_CaCb.saveFields(',dirName,'/mathematica/',name,'_Skinned_Rot_TopTail_CaCb',')'));
 
 % 6 : Despeckle the chromatic bins.
 despecRadius = 2; % The radius to despeckle by.
 eval(strcat(name,'_Skinned_Rot_TopTail_CaCb_Despec = ', name,'_Skinned_Rot_TopTail_CaCb.removeZeros(despecRadius)'));
 % Save the result.
 save(strcat(dirName,'/',name,'_Skinned_Rot_TopTail_CaCb_Despec'),strcat( name,'_Skinned_Rot_TopTail_CaCb_Despec'));
-eval(strcat( name,'_Skinned_Rot_TopTail_CaCb_Despec.saveFields(',dirName,'/mathematica/',name,'_Skinned_Rot_TopTail_CaCb_Despec'));
+eval(strcat( name,'_Skinned_Rot_TopTail_CaCb_Despec.saveFields(',dirName,'/mathematica/',name,'_Skinned_Rot_TopTail_CaCb_Despec',')'));
 
 % 7 : Split into blobs
 tol = 0.05; % fBin values lower than this will be ignored.
@@ -55,6 +55,6 @@ for id = 1:nBlobs
     masked{id} = masked{id}.gFit;
     eval(strcat(name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id),' = masked{id}'));
     save(strcat(dirName,'/',name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id)),strcat(name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id)));
-eval(strcat( name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id),'.saveFields(',dirName,'/mathematica/',name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id)));
+eval(strcat( name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id),'.saveFields(',dirName,'/mathematica/',name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id),')'));
 end
 
