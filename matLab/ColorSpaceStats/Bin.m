@@ -599,16 +599,16 @@ classdef Bin
             binOut = Bin(binIn.nBins, binIn.aMin, binIn.aMax);
             if size(depth) == [1,1]
                 binOut.name = strcat(binIn.name,'_Skinned');
-                binOut.bin(depth:end-depth,depth:end-depth,depth:end-depth) = binIn.bin(depth:end-depth,depth:end-depth,depth:end-depth);
+                binOut.bin(depth+1:end-depth,depth+1:end-depth,depth+1:end-depth) = binIn.bin(depth+1:end-depth,depth+1:end-depth,depth+1:end-depth);
             elseif size(depth) == [1,2]
                 binOut.name = strcat(binIn.name,'_Skinned');
-                binOut.bin(depth(1):end-depth(2),depth(1):end-depth(2),depth(1):end-depth(2)) = binIn.bin(depth(1):end-depth(2),depth(1):end-depth(2),depth(1):end-depth(2));
+                binOut.bin(depth(1)+1:end-depth(2),depth(1)+1:end-depth(2),depth(1)+1:end-depth(2)) = binIn.bin(depth(1)+1:end-depth(2),depth(1)+1:end-depth(2),depth(1)+1:end-depth(2));
             elseif size(depth) == [3,2]
                 binOut.name = strcat(binIn.name,'_Skinned');
-                binOut.bin(depth(1,1):end-depth(1,2),depth(2,1):end-depth(2,2),depth(3,1):end-depth(3,2)) = binIn.bin(depth(1,1):end-depth(1,2),depth(2,1):end-depth(2,2),depth(3,1):end-depth(3,2));
+                binOut.bin(depth(1,1)+1:end-depth(1,2),depth(2,1)+1:end-depth(2,2),depth(3,1)+1:end-depth(3,2)) = binIn.bin(depth(1,1)+1:end-depth(1,2),depth(2,1)+1:end-depth(2,2),depth(3,1)+1:end-depth(3,2));
             elseif size(depth) == [3,1]
                 binOut.name = strcat(binIn.name,'_Skinned');
-                binOut.bin(depth(1,1):end-depth(1,1),depth(2,1):end-depth(2,1),depth(3,1):end-depth(3,1)) = binIn.bin(depth(1,1):end-depth(1,1),depth(2,1):end-depth(2,1),depth(3,1):end-depth(3,1));
+                binOut.bin(depth(1,1)+1:end-depth(1,1),depth(2,1)+1:end-depth(2,1),depth(3,1)+1:end-depth(3,1)) = binIn.bin(depth(1,1)+1:end-depth(1,1),depth(2,1)+1:end-depth(2,1),depth(3,1)+1:end-depth(3,1));
             end
             binOut.count = sum(sum(sum(binOut.bin)));
             binOut = binOut.norm;
