@@ -55,6 +55,6 @@ for id = 1:nBlobs
     masked{id} = masked{id}.gFit;
     eval(strcat(name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id),' = masked{id}'));
     save(strcat(dirName,'/',name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id)),strcat(name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id)));
-eval(strcat( 'Bin.saveFields(',name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',',''',dirName,'/mathematica/',name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id),''')'));
+eval(strcat( 'Bin.saveFields(',name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id),',''',dirName,'/mathematica/',name,'_Skinned_Rot_TopTail_CaCb_Despec_blob',num2str(id),''')'));
 end
 
