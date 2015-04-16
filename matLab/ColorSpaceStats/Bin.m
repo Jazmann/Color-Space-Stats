@@ -528,6 +528,30 @@ classdef Bin
             'g','gMean','gSigma','gTheta','gAmp','aMin','aMax','aScale','count','a','subs','loc','-v6');
         end
         
+        function binOut = loadFields(fileName)
+            load(fileName);
+            binOut = Bin(nBins, aMin, aMax);
+            binOut.name = name; % A discriptive name of the bin.
+            binOut.axisNames = axisNames;
+            binOut.dims = dims;
+            binOut.nBins = nBins; % the number of bins
+            binOut.bin = bin; % the counts for each bin.
+            binOut.vals = mat2cell(vals,ones([1,dims])); % The center value of each bin
+            binOut.bins = mat2cell(bins,ones([1,dims])); % A lookup table for the bin allocation
+            binOut.fBin = fBin; % bins normalised to 1:0 .
+            %f = f; % interpolated data at non zero points.
+            binOut.g = g;
+            binOut.gMean = gMean;
+            binOut.gSigma = gSigma;
+            binOut.gTheta = gTheta;
+            binOut.gAmp = gAmp;
+            binOut.aMin = aMin; binOut.aMax = aMax; binOut.aScale = aScale;
+            binOut.count = count;
+            binOut.a = a;
+            binOut.loc = loc;
+            binOut
+        end
+        
         function masked = blobSplit(binIn, nBlobs, tol)
             if nargin<3
                 tol = 0.05; % fBin values lower than this will be ignored.
