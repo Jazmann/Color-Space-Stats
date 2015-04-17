@@ -1,6 +1,7 @@
 rootDirName='/Users/jaspershemilt/Developer/projects/Color-Space-Stats/matLab/ColorSpaceStats/Skin/';
 
-stageNames = {'', ...
+stageNames = { ...
+    '', ...
     '_Skinned', ...
     '_Skinned_Rot', ...
     '_Skinned_Rot_TopTail', ...
@@ -9,11 +10,13 @@ stageNames = {'', ...
     '_Skinned_Rot_TopTail_CaCb_Despec_blob1', ...
     '_Skinned_Rot_TopTail_CaCb_Despec_blob2'};
 
-indDirNames = {'IndividualSkin/FSkin/', ...
+indDirNames = { ...
+    'IndividualSkin/FSkin/', ...
     'IndividualSkin/JSkin/', ...
     'IndividualSkin/NSkin/'};
 
-indNames = {'RGB_FSkin_', ...
+indNames = { ...
+    'RGB_FSkin_', ...
     'RGB_JSkin_', ...
     'RGB_NSkin_'};
 
@@ -24,19 +27,20 @@ partDirNames = { ...
     'Thumb/Pad/Orig/', ...
     'Thumb/Tip/Orig/'};
 
-partNames = {'Hand_Bin', ...
+partNames = { ...
+    'Hand_Bin', ...
     'Index_Pad_Bin', ...
     'Index_Tip_Bin', ...
     'Thumb_Pad_Bin', ...
     'Thumb_Tip_Bin'};
 
 
-for i = 1:3
+for i = 1:size(indNames,2)
     % Setup Output Directory
     outDirName = strcat(rootDirName,indDirNames{i},'comb/');
     mkdir(outDirName);
     mkdir(strcat(outDirName,'mathematica/'));
-    for s = 1:8
+    for s = 1:size(stageNames,2)
         % Load The first bin
         name = strcat(indNames{i},partNames{1},stageNames{s});
         sprintf(strcat('%d : Loading : ',name), s)
@@ -56,7 +60,7 @@ for i = 1:3
         out = eval(name);
         outName = strcat(indNames{i},'Bin',stageNames{s});
         out.name = outName;
-        for p = 2:5
+        for p = 2:size(partNames,2)
             % Load The p th bin
             name = strcat(indNames{i},partNames{p},stageNames{s});
             sprintf(strcat('%d : Loading : ',name), s)
@@ -78,16 +82,19 @@ for i = 1:3
         end
         
         eval([outName,' = out.norm']);
+        if s >= 7
+            eval([outName,' = ',outName,'.gFit']);
+        end
         save(strcat(outDirName,outName),outName);
         eval(strcat( 'Bin.saveFields(',outName,',''',outDirName,'/mathematica/',outName,''' )'));
     end
 end
 
-
-outDirName = strcat(rootDirName,'comb');
+% Combine the individual Bins
+outDirName = strcat(rootDirName,'comb/');
 mkdir(outDirName);
-mkdir(strcat(outDirName,'/mathematica'));
-for s = 1:8
+mkdir(strcat(outDirName,'mathematica'));
+for s = 1:size(stageNames,2)
     name = strcat(indNames{1},'Bin',stageNames{s});
     sprintf(strcat('%d : Combining : ',name), s)
     load(strcat(rootDirName,indDirNames{1},'comb/',name,'.mat'))
@@ -96,41 +103,22 @@ for s = 1:8
     out.name = outName;
     if s <=2
         out.axisNames = ['R','G','B'];
-    else
+    elseif s <= 4
         out.axisNames = ['L','Ca','Cb'];
+    else
+        out.axisNames = ['Ca','Cb'];
     end
     
-    for i = 2:3
+    for i = 2:size(indNames,2)
         name = strcat(indNames{i},'Bin',stageNames{s});
         load(strcat(rootDirName,indDirNames{i},'comb/',name,'.mat'));
         out = out.add(eval(name));
     end
     eval([outName,' = out.norm']);
-    save(strcat(outDirName,'/',outName),outName);
-    eval(strcat( 'Bin.saveFields(',outName,',''',outDirName,'/mathematica/',outName,''' )'));
+    if s >= 7
+        eval([outName,' = ',outName,'.gFit']);
+    end
+    save(strcat(outDirName,outName),outName);
+    eval(strcat( 'Bin.saveFields(',outName,',''',outDirName,'mathematica/',outName,''' )'));
 end
-
-
-%         dataMin  = 0; dataMax = 255;
-%         out = Bin([dataMax+1,dataMax+1,dataMax+1],[dataMin,dataMin,dataMin],[dataMax,dataMax,dataMax]);
-%         outName = strcat(indName,'Bin',stageName);
-%         out.name = outName;
-%         out.axisNames = ['R','G','B'];
-
-%         dirName = 'Index/Pad/Orig/';
-%         name = strcat(indName,'Index_Pad_Bin');
-%         load(strcat(rootDirName,indDirName,dirName,name,'.mat'));
-%         out = out.add(eval(name));
-%         dirName = 'Index/Tip/Orig/';
-%         name = strcat(indName,'Index_Tip_Bin');
-%         load(strcat(rootDirName,indDirName,dirName,name,'.mat'));
-%         out = out.add(eval(name));
-%         dirName = 'Thumb/Pad/Orig/';
-%         name = strcat(indName,'Thumb_Pad_Bin');
-%         load(strcat(rootDirName,indDirName,dirName,name,'.mat'));
-%         out = out.add(eval(name));
-%         dirName = 'Thumb/Tip/Orig/';
-%         name = strcat(indName,'Thumb_Tip_Bin');
-%         load(strcat(rootDirName,indDirName,dirName,name,'.mat'));
-%         out = out.add(eval(name));
 
