@@ -112,7 +112,7 @@ for s = 1:size(stageNames,2)
     for i = 2:size(indNames,2)
         name = strcat(indNames{i},'Bin',stageNames{s});
         load(strcat(rootDirName,indDirNames{i},'comb/',name,'.mat'));
-        out = out.add(eval(name));
+        out = Bin.addBins(out, eval(name));
     end
     eval([outName,' = out.norm']);
     if s >= 7

@@ -6,7 +6,7 @@ classdef Bin
         name = 'Bins'; % A discriptive name of the bin.
         axisNames;
         dims;
-        nBins; % the number of bins 
+        nBins; % the number of bins
         bin; % the counts for each bin.
         vals; % The center value of each bin
         bins; % A lookup table for the bin allocation
@@ -105,9 +105,9 @@ classdef Bin
             else
                 dirName = strcat(dirNameIn,'/');
             end
-                D = dir(strcat(dirName,'*.jpg'));
+            D = dir(strcat(dirName,'*.jpg'));
             for k = 1:numel(D)
-                img = imread(strcat(dirName,D(k).name));  
+                img = imread(strcat(dirName,D(k).name));
                 if(nargin>=3)
                     disp(strcat('Adding ',D(k).name,' with ',trans.scaleType));
                     obj = obj.addImage(img, trans);
@@ -211,13 +211,25 @@ classdef Bin
             xdata = zeros(obj.nBins(1),obj.nBins(2),2);
             [ xdata(:,:,1), xdata(:,:,2)] =  meshgrid(obj.vals{2},obj.vals{1});
             if obj.gSigma(1) == 0 && obj.gSigma(2)==0
-            x0 = [1.0, obj.a(2),         obj.aScale(2)/4.0,                obj.a(1),        obj.aScale(1)/4.0,                obj.gTheta]; % Inital guess parameters
-            lb = [0.9, obj.vals{2}(1),   obj.aScale(2)*(3.0/obj.nBins(2)), obj.vals{1}(1),  obj.aScale(1)*(3.0/obj.nBins(1)), obj.gTheta - pi/4];
-            ub = [1.0, obj.vals{2}(end), obj.aScale(2),                    obj.vals{1}(end),obj.aScale(1),                    obj.gTheta + pi/4];
+                if obj.gMean(1) == 0 && obj.gMean(2)==0
+                    x0 = [1.0, obj.a(2),         obj.aScale(2)/4.0,                obj.a(1),        obj.aScale(1)/4.0,                obj.gTheta]; % Inital guess parameters
+                    lb = [0.9, obj.vals{2}(1),   obj.aScale(2)*(3.0/obj.nBins(2)), obj.vals{1}(1),  obj.aScale(1)*(3.0/obj.nBins(1)), obj.gTheta - pi/4];
+                    ub = [1.0, obj.vals{2}(end), obj.aScale(2),                    obj.vals{1}(end),obj.aScale(1),                    obj.gTheta + pi/4];
+                else
+                    x0 = [1.0, obj.gMean(2),     obj.aScale(2)/4.0,                obj.gMean(1),     obj.aScale(1)/4.0,                obj.gTheta]; % Inital guess parameters
+                    lb = [0.9, obj.vals{2}(1),   obj.aScale(2)*(3.0/obj.nBins(2)), obj.vals{1}(1),   obj.aScale(1)*(3.0/obj.nBins(1)), obj.gTheta - pi/4];
+                    ub = [1.0, obj.vals{2}(end), obj.aScale(2),                    obj.vals{1}(end), obj.aScale(1),                    obj.gTheta + pi/4];
+                end
             else
-            x0 = [1.0, obj.a(2),         1.0 .* obj.gSigma(2), obj.a(1),        1.0 .* obj.gSigma(1), obj.gTheta]; % Inital guess parameters
-            lb = [0.9, obj.vals{2}(1),   0.1 .* obj.gSigma(2), obj.vals{1}(1),  0.1 .* obj.gSigma(1), obj.gTheta - pi/4];
-            ub = [1.0, obj.vals{2}(end), 8.0 .* obj.gSigma(2), obj.vals{1}(end),8.0 .* obj.gSigma(1), obj.gTheta + pi/4];
+                if obj.gMean(1) == 0 && obj.gMean(2)==0
+                    x0 = [1.0, obj.a(2),         1.0 .* obj.gSigma(2), obj.a(1),         1.0 .* obj.gSigma(1), obj.gTheta]; % Inital guess parameters
+                    lb = [0.9, obj.vals{2}(1),   0.1 .* obj.gSigma(2), obj.vals{1}(1),   0.1 .* obj.gSigma(1), obj.gTheta - pi/4];
+                    ub = [1.0, obj.vals{2}(end), 8.0 .* obj.gSigma(2), obj.vals{1}(end), 8.0 .* obj.gSigma(1), obj.gTheta + pi/4];
+                else
+                    x0 = [1.0, obj.gMean(2),     1.0 .* obj.gSigma(2), obj.gMean(1),     1.0 .* obj.gSigma(1), obj.gTheta]; % Inital guess parameters
+                    lb = [0.9, obj.vals{2}(1),   0.1 .* obj.gSigma(2), obj.vals{1}(1),   0.1 .* obj.gSigma(1), obj.gTheta - pi/4];
+                    ub = [1.0, obj.vals{2}(end), 8.0 .* obj.gSigma(2), obj.vals{1}(end), 8.0 .* obj.gSigma(1), obj.gTheta + pi/4];
+                end
             end
             [x,resnorm,residual,exitflag] = lsqcurvefit(@D2GaussFunctionRot,x0,xdata,obj.fBin,lb,ub);
             obj.gAmp = x(1);
@@ -272,8 +284,8 @@ classdef Bin
             binOut.axisNames = [obj.axisNames(ind(1)),obj.axisNames(ind(2))];
             binOut.name = strcat(obj.name,'_',obj.axisNames(ind(1)),obj.axisNames(ind(2)));
             if nargin <=2
-                    binOut.bin = squeeze(sum(obj.bin,d));
-                    binOut.fBin = squeeze(sum(obj.fBin,d));
+                binOut.bin = squeeze(sum(obj.bin,d));
+                binOut.fBin = squeeze(sum(obj.fBin,d));
                 binOut.count = obj.count;
             else
                 if d==1
@@ -293,7 +305,7 @@ classdef Bin
         
         function binOut = rot(obj, trans, transLoc, method)
             if nargin <4
-                method='round';% method = 'round' 'ceil' 'floor' 
+                method='round';% method = 'round' 'ceil' 'floor'
             end
             axisRanges=round(horzcat(trans.range(:,1).*obj.nBins',trans.range(:,2).*obj.nBins'));
             axisLengths=ceil(trans.axisLength.*obj.nBins');
@@ -372,9 +384,9 @@ classdef Bin
         
         function color = toColorSpace(obj)
             if obj.dims==2
-            color = colorSpace(obj.gTheta, [0.5, obj.gMean(1),obj.gMean(2)], [1,obj.gSigma(1),obj.gSigma(2)], [3,3,3], 0, 255, 0, 255, 10, 0);
+                color = colorSpace(obj.gTheta, [0.5, obj.gMean(1),obj.gMean(2)], [1,obj.gSigma(1),obj.gSigma(2)], [3,3,3], 0, 255, 0, 255, 10, 0);
             else
-            color = colorSpace(0.0, [obj.a(1), obj.a(2), obj.a(3)], [1,1,1], [3,3,3], 0, 255, 0, 255, 10, 0);
+                color = colorSpace(0.0, [obj.a(1), obj.a(2), obj.a(3)], [1,1,1], [3,3,3], 0, 255, 0, 255, 10, 0);
             end
         end
         
@@ -384,7 +396,7 @@ classdef Bin
                 out(i)=obj.vals{i}(indx(i));
             end
         end
-
+        
         function obj = show(obj)
             if obj.dims ==3
                 figure('Name',horzcat('3D ',obj.name,' bin'),'NumberTitle','off');
@@ -525,7 +537,7 @@ classdef Bin
             a = binIn.a;
             subs = binIn.subs; loc = binIn.loc;
             save(fileName,'name','axisNames','dims','nBins','bin','vals','bins','fBin', ... %'f',
-            'g','gMean','gSigma','gTheta','gAmp','aMin','aMax','aScale','count','a','subs','loc','-v6');
+                'g','gMean','gSigma','gTheta','gAmp','aMin','aMax','aScale','count','a','subs','loc','-v6');
         end
         
         function binOut = loadFields(fileName)
@@ -550,6 +562,34 @@ classdef Bin
             binOut.a = a;
             binOut.loc = loc;
             binOut
+        end
+        
+        
+        function binOut = addBins(binA, binB)
+            % We wish to add the bins together as if they had equal bin
+            % counts.
+            ratio = binA.count/binB.count;
+            % Create a blank bin of the same size as binA.
+            binOut = Bin(binA.nBins, binA.aMin, binA.aMax);
+            % Set the names from binA
+            binOut.name = strcat(binA.name,' + ',binA.name); % A discriptive name of the bin.
+            binOut.axisNames = binA.axisNames;
+            % Set the Gaussian parameters to be an average of the two. gFit
+            % needs to be re run
+            binOut.gMean  = (binA.gMean  + binB.gMean ) ./ 2.;
+            binOut.gSigma = (binA.gSigma + binB.gSigma) ./ 2.;
+            binOut.gTheta = (binA.gTheta + binB.gTheta) ./ 2.;
+            binOut.gAmp   = (binA.gAmp + binB.gAmp) ./ 2.;
+            
+            binOut.bin = binA.bin + ratio .* binB.bin;
+            % The count is doubled as the bins were made equivalent in
+            % count size.
+            binOut.count = 2 .* binA.count;
+            
+            binOut.fBin = binA.fBin + ratio .* binB.fBin;
+            binOut = binOut.norm;
+            binOut = binOut.mean;
+            
         end
         
         function masked = blobSplit(binIn, nBlobs, tol)
@@ -601,7 +641,7 @@ classdef Bin
                 masked{id}.gSigma = [stat(id).MajorAxisLength/4, stat(id).MinorAxisLength/4];
             end
         end
-
+        
         
         function overlap(bin1,bin2, thresh)
             if nargin <=2
