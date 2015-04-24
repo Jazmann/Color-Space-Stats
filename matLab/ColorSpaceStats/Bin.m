@@ -572,7 +572,7 @@ classdef Bin
             % Create a blank bin of the same size as binA.
             binOut = Bin(binA.nBins, binA.aMin, binA.aMax);
             % Set the names from binA
-            binOut.name = strcat(binA.name,' + ',binA.name); % A discriptive name of the bin.
+            binOut.name = strcat(binA.name,' + ',binB.name); % A discriptive name of the bin.
             binOut.axisNames = binA.axisNames;
             % Set the Gaussian parameters to be an average of the two. gFit
             % needs to be re run
@@ -586,7 +586,7 @@ classdef Bin
             % count size.
             binOut.count = 2 .* binA.count;
             
-            binOut.fBin = binA.fBin + ratio .* binB.fBin;
+            binOut.fBin = binA.fBin +  binB.fBin;
             binOut = binOut.norm;
             binOut = binOut.mean;
             

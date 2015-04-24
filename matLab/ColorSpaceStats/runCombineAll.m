@@ -95,12 +95,12 @@ outDirName = strcat(rootDirName,'comb/');
 mkdir(outDirName);
 mkdir(strcat(outDirName,'mathematica'));
 for s = 1:size(stageNames,2)
-    name = strcat(indNames{1},'Bin',stageNames{s});
-    sprintf(strcat('%d : Combining : ',name), s)
-    load(strcat(rootDirName,indDirNames{1},'comb/',name,'.mat'))
-    out = eval(name);
     outName = strcat('Bin',stageNames{s});
-    out.name = outName;
+    sprintf(strcat('%d : Combining : ', strcat(indNames{1},'Bin',stageNames{s})), s)
+    load(strcat(rootDirName,indDirNames{1},'comb/',strcat(indNames{1},'Bin',stageNames{s}),'.mat'));
+    sprintf(strcat('%d : Combining : ', strcat(indNames{2},'Bin',stageNames{s})), s)
+    load(strcat(rootDirName,indDirNames{2},'comb/',strcat(indNames{2},'Bin',stageNames{s}),'.mat'));
+    out = Bin.addBins(eval(strcat(indNames{1},'Bin',stageNames{s})), eval(strcat(indNames{2},'Bin',stageNames{s})));
     if s <=2
         out.axisNames = ['R','G','B'];
     elseif s <= 4
@@ -109,8 +109,9 @@ for s = 1:size(stageNames,2)
         out.axisNames = ['Ca','Cb'];
     end
     
-    for i = 2:size(indNames,2)
+    for i = 3:size(indNames,2)
         name = strcat(indNames{i},'Bin',stageNames{s});
+        sprintf(strcat('%d : Combining : ',name), s)
         load(strcat(rootDirName,indDirNames{i},'comb/',name,'.mat'));
         out = Bin.addBins(out, eval(name));
     end
